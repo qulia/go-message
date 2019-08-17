@@ -1,4 +1,4 @@
-// Test for send receive operations of queue
+// Integration and benchmark tests for queue manager operations
 package message
 
 import (
@@ -8,7 +8,10 @@ import (
 	"time"
 
 	"github.com/qulia/go-log/log"
-	"github.com/qulia/go-samples/sensors.sample.com/config"
+)
+
+var (
+	serverAddress string
 )
 
 func TestNamedQueueManualAckSuccess(t *testing.T) {
@@ -16,8 +19,8 @@ func TestNamedQueueManualAckSuccess(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	nqr, _ := NewReceiveNamedQueueManager(config.CM.ServerAddress, t.Name(), false)
-	nqs, _ := NewSendNamedQueueManager(config.CM.ServerAddress, t.Name())
+	nqr, _ := NewReceiveNamedQueueManager(serverAddress, t.Name(), false)
+	nqs, _ := NewSendNamedQueueManager(serverAddress, t.Name())
 	receive := make(chan bool)
 	receiveComplete := make(chan bool)
 	// Run receiver with success processing
@@ -34,8 +37,8 @@ func TestNamedQueueManualAckFail(t *testing.T) {
 		t.Error(err)
 	}
 
-	nqr, _ := NewReceiveNamedQueueManager(config.CM.ServerAddress, t.Name(), false)
-	nqs, _ := NewSendNamedQueueManager(config.CM.ServerAddress, t.Name())
+	nqr, _ := NewReceiveNamedQueueManager(serverAddress, t.Name(), false)
+	nqs, _ := NewSendNamedQueueManager(serverAddress, t.Name())
 	receive := make(chan bool)
 	receiveComplete := make(chan bool)
 	// Run receiver with failure processing
@@ -52,8 +55,8 @@ func TestNamedQueueAutoAckFail(t *testing.T) {
 		t.Error(err)
 	}
 
-	nqr, _ := NewReceiveNamedQueueManager(config.CM.ServerAddress, t.Name(), true)
-	nqs, _ := NewSendNamedQueueManager(config.CM.ServerAddress, t.Name())
+	nqr, _ := NewReceiveNamedQueueManager(serverAddress, t.Name(), true)
+	nqs, _ := NewSendNamedQueueManager(serverAddress, t.Name())
 	receive := make(chan bool)
 	receiveComplete := make(chan bool)
 	// Run receiver with failure processing
@@ -64,15 +67,22 @@ func TestNamedQueueAutoAckFail(t *testing.T) {
 	}
 }
 
+/*
+.com/qulia/go-message/message/namedqueue_test.go#111: GOMAXPROCS: 4
+goos: linux
+goarch: amd64
+pkg: github.com/qulia/go-message/message
+BenchmarkNamedQueueManager_SendReceive-4   	    5000	    355913 ns/op
+PASS
+*/
 func BenchmarkNamedQueueManager_SendReceive(b *testing.B) {
 	err := setup(b.Name(), true)
 	if err != nil {
 		b.Error(err)
 	}
-	config.SetBenchMarkConfigurationManager()
 
-	nqr, _ := NewReceiveNamedQueueManager(config.CM.ServerAddress, b.Name(), false)
-	nqs, _ := NewSendNamedQueueManager(config.CM.ServerAddress, b.Name())
+	nqr, _ := NewReceiveNamedQueueManager(serverAddress, b.Name(), false)
+	nqs, _ := NewSendNamedQueueManager(serverAddress, b.Name())
 
 	receive := make(chan bool)
 	receiveComplete := make(chan bool)
@@ -108,17 +118,18 @@ func setup(name string, benchmark bool) error {
 	log.V("CPU count: %d\n", runtime.NumCPU())
 	log.V("GOMAXPROCS: %d\n", runtime.GOMAXPROCS(0))
 
+	serverAddress = "amqp://guest:guest@localhost:5672/"
 	if benchmark {
-		config.SetBenchMarkConfigurationManager()
+		log.SetLevel(log.None)
 	} else {
-		config.SetDefaultConfigurationManager()
+		log.SetLevel(log.Verbose)
 	}
 
 	return drain(name)
 }
 
 func drain(queueName string) error {
-	nq, _ := NewReceiveNamedQueueManager(config.CM.ServerAddress, queueName, true)
+	nq, _ := NewReceiveNamedQueueManager(serverAddress, queueName, true)
 	receiveComplete := make(chan bool)
 	// Run receiver
 	go func() {
@@ -165,7 +176,7 @@ func sendOneAndWait(
 }
 
 func waitExpectedCount(queueName string, expectedCount int) {
-	nq, _ := newNamedQueueManager(config.CM.ServerAddress, queueName)
+	nq, _ := newNamedQueueManager(serverAddress, queueName)
 	for {
 		count := nq.getCount()
 		log.V("Current/expected count %d/%d \n", count, expectedCount)
