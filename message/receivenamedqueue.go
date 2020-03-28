@@ -66,3 +66,8 @@ func NewReceiveNamedQueueManager(serverAddress, queueName string, autoAck bool) 
 func (rnqm *ReceiveNamedQueueManager) Close() error {
 	return rnqm.namedQueueManager.close()
 }
+
+// GetCount of the queue
+func (rnqm *ReceiveNamedQueueManager) GetCount() int {
+	return rnqm.namedQueueManager.getCount()
+}
