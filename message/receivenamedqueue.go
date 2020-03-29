@@ -7,7 +7,7 @@ import (
 
 // ReceiveNamedQueueManager Deals with RabbitMqQueue connection details
 type ReceiveNamedQueueManager struct {
-	namedQueueManager *namedQueueManager
+	namedQueueManager *NamedQueueManager
 	autoAck           bool
 	msgs              <-chan amqp.Delivery
 }
@@ -40,7 +40,7 @@ func (rnqm *ReceiveNamedQueueManager) Receive(onReceive func([]byte) error) {
 func NewReceiveNamedQueueManager(serverAddress, queueName string, autoAck bool) (*ReceiveNamedQueueManager, error) {
 	rnqm := new(ReceiveNamedQueueManager)
 	rnqm.autoAck = autoAck
-	nqm, err := newNamedQueueManager(serverAddress, queueName)
+	nqm, err := NewNamedQueueManager(serverAddress, queueName)
 	if err != nil {
 		return nil, err
 	}
@@ -64,10 +64,10 @@ func NewReceiveNamedQueueManager(serverAddress, queueName string, autoAck bool) 
 
 // Close the queue manager
 func (rnqm *ReceiveNamedQueueManager) Close() error {
-	return rnqm.namedQueueManager.close()
+	return rnqm.namedQueueManager.Close()
 }
 
 // GetCount of the queue
 func (rnqm *ReceiveNamedQueueManager) GetCount() int {
-	return rnqm.namedQueueManager.getCount()
+	return rnqm.namedQueueManager.GetCount()
 }

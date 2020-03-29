@@ -5,15 +5,15 @@ import (
 	"github.com/streadway/amqp"
 )
 
-// namedQueueManager Deals with RabbitMqQueue connection details
-type namedQueueManager struct {
+// NamedQueueManager Deals with RabbitMqQueue connection details
+type NamedQueueManager struct {
 	serverAddress string
 	queue         *amqp.Queue
 	channel       *amqp.Channel
 }
 
-func newNamedQueueManager(serverAddress, queueName string) (*namedQueueManager, error) {
-	nqm := new(namedQueueManager)
+func NewNamedQueueManager(serverAddress, queueName string) (*NamedQueueManager, error) {
+	nqm := new(NamedQueueManager)
 	nqm.serverAddress = serverAddress
 	ch, q, err := getNamedQueue(serverAddress, queueName)
 	nqm.channel = ch
@@ -22,7 +22,7 @@ func newNamedQueueManager(serverAddress, queueName string) (*namedQueueManager, 
 }
 
 // GetCount returns number of messages in the queue
-func (qm *namedQueueManager) getCount() int {
+func (qm *NamedQueueManager) GetCount() int {
 	q, _ := qm.channel.QueueDeclare(
 		qm.queue.Name, // server create the queue name if empty
 		false,         // durable
@@ -34,7 +34,7 @@ func (qm *namedQueueManager) getCount() int {
 
 	return q.Messages
 }
-func (qm *namedQueueManager) close() error {
+func (qm *NamedQueueManager) Close() error {
 	err := qm.channel.Close()
 	log.E(err, "Failed closing the channel for %s\n", qm.queue.Name)
 	return err

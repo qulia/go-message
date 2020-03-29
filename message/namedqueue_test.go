@@ -102,12 +102,12 @@ func BenchmarkNamedQueueManager_SendReceive(b *testing.B) {
 	b.StopTimer()
 	err = nqr.Close()
 	if err != nil {
-		b.Error("Could not close")
+		b.Error("Could not Close")
 	}
 
 	err = nqs.Close()
 	if err != nil {
-		b.Error("Could not close")
+		b.Error("Could not Close")
 	}
 	<-receiveComplete
 	waitExpectedCount(nqr.namedQueueManager.queue.Name, 0)
@@ -176,9 +176,10 @@ func sendOneAndWait(
 }
 
 func waitExpectedCount(queueName string, expectedCount int) {
-	nq, _ := newNamedQueueManager(serverAddress, queueName)
+	nq, _ := NewNamedQueueManager(serverAddress, queueName)
+	defer nq.Close()
 	for {
-		count := nq.getCount()
+		count := nq.GetCount()
 		log.V("Current/expected count %d/%d \n", count, expectedCount)
 		if count == expectedCount {
 			break

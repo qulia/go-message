@@ -7,13 +7,13 @@ import (
 
 // SendNamedQueueManager Deals with RabbitMqQueue connection details
 type SendNamedQueueManager struct {
-	namedQueueManager *namedQueueManager
+	namedQueueManager *NamedQueueManager
 }
 
 // NewSendNamedQueueManager Create new queuemanager for sending and receiving data
 func NewSendNamedQueueManager(serverAddress, queueName string) (*SendNamedQueueManager, error) {
 	snqm := new(SendNamedQueueManager)
-	nqm, err := newNamedQueueManager(serverAddress, queueName)
+	nqm, err := NewNamedQueueManager(serverAddress, queueName)
 	if err != nil {
 		return nil, err
 	}
@@ -43,5 +43,5 @@ func (snqm *SendNamedQueueManager) Send(msg []byte) error {
 
 // Close the queue manager
 func (snqm *SendNamedQueueManager) Close() error {
-	return snqm.namedQueueManager.close()
+	return snqm.namedQueueManager.Close()
 }
